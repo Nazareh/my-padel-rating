@@ -1,9 +1,9 @@
 spring:
   data:
     mongodb:
-#      version: 4.0.21
       database: match-service
 #      port: 27017
+#      version: 4.0.21
       uri: mongodb+srv://match-service:Xgjqq877U5Hs39Dq@prod.h0ytr1d.mongodb.net/?retryWrites=true&w=majority
 logging:
   level:
