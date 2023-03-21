@@ -37,7 +37,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
       name: Build match-service with Maven
-      run: mvn -B package --file match-service/pom.xml
+      run: mvn -B package --file /match-service/pom.xml
     # - run: sam deploy --no-confirm-changeset --no-fail-on-empty-changeset --stack-name sam-hello-world --s3-bucket github-match-service-artifacts --capabilities CAPABILITY_IAM --region ${{ secrets.AWS_REGION }}
 
     # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
