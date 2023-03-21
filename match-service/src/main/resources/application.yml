@@ -2,9 +2,9 @@ spring:
   data:
     mongodb:
 #      version: 4.0.21
-      database: match-service
+      database: 'match-${MONGODB_PASSWORD}'
 #      port: 27017
-      uri: mongodb+srv://match-service:$MONGODB_PASSWORD@prod.h0ytr1d.mongodb.net/?retryWrites=true&w=majority
+      uri: 'mongodb+srv://match-service:${MONGODB_PASSWORD}@prod.h0ytr1d.mongodb.net/?retryWrites=true&w=majority'
 logging:
   level:
     org:
