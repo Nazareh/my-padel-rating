@@ -15,13 +15,25 @@ export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    const matchFunction = new NodejsFunction(this, 'Match', {
-      entry: 'lambda/match-fn.ts',
-      runtime: Runtime.NODEJS_18_X
+    const lambdaLayer = new LayerVersion(this, "BackendLayer", {
+      code: Code.fromAsset("../lambda/match-service/node_modules"),
+      compatibleRuntimes: [
+        Runtime.NODEJS_14_X,
+      ],
     });
 
-    new LambdaRestApi(this, "reabold-api", {
-      handler: matchFunction,
+    const backendLambda = new Function(this, "BackendHandler", {
+      runtime: Runtime.NODEJS_14_X,
+      code: Code.fromAsset("../lambda/match-service/dist"),
+      handler: "index.handler",
+      layers: [lambdaLayer],
+      environment: {
+        NODE_PATH: "$NODE_PATH:/opt",
+      },
+    });
+
+    new LambdaRestApi(this, "BackendEndpoint", {
+      handler: backendLambda,
     });
   }
 }
