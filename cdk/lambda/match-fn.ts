@@ -1,12 +1,13 @@
 import { Context, APIGatewayProxyResult, APIGatewayEvent } from 'aws-lambda';
 
 export const handler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
-    console.log(`Event: ${JSON.stringify(event, null, 2)}`);
+
+    const match:Match = JSON.parse(event.body || '');
+
     return {
-        statusCode: 200,
+        statusCode: 201,
         body: JSON.stringify({
-            message: 'hello world',
-            original: event.body
+        match
         }),
     };
 };

@@ -1,7 +1,9 @@
 import * as cdk from "aws-cdk-lib";
 import {
+  JsonSchemaType,
   LambdaIntegration,
-  LambdaRestApi,
+  Model,
+  RequestValidator,
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
@@ -24,51 +26,61 @@ export class CdkStack extends cdk.Stack {
       runtime: Runtime.NODEJS_18_X,
     });
 
-
-
     const api = new RestApi(this, "reabold-api", {
       restApiName: "Widget Service",
       description: "This service serves widgets.",
     });
 
-    const matchModel = new apigateway.Model(this, "model-validator", {
+    const matchModel = new Model(this, "model-validator", {
       restApi: api,
       contentType: "application/json",
       description: "To validate the request body",
       modelName: "matchmodelcdk",
       schema: {
         type: JsonSchemaType.OBJECT,
-        required: ["datetime","court","wins","losses"],
+        required: ["datetime", "court", "wins", "losses"],
         properties: {
-          datetime: { type: "date" },
-          wins: { type: "number" },
-          losses: { type: "number" },
+          datetime: { type: JsonSchemaType.STRING },
+          wins: { type: JsonSchemaType.INTEGER },
+          losses: { type: JsonSchemaType.INTEGER },
           team1: {
-            type: "object",
-            required: ["player1","player2"],
+            type: JsonSchemaType.OBJECT,
+            required: ["player1", "player2"],
             properties: {
-              player1: { type: "string" },
-              player2: { type: "string" },
+              player1: { type: JsonSchemaType.STRING },
+              player2: { type: JsonSchemaType.STRING },
             },
-            team2: {
-              type: "object",
-              required: ["player1","player2"],
-              properties: {
-                player1: { type: "string" },
-                player2: { type: "string" },
-              },
+          },
+          team2: {
+            type: JsonSchemaType.OBJECT,
+            required: ["player1", "player2"],
+            properties: {
+              player1: { type: JsonSchemaType.STRING },
+              player2: { type: JsonSchemaType.STRING },
+            },
           },
         },
       },
-    }});
+    });
 
-    api.root.addResource("matches")
-    .addMethod(
+
+    const basicValidator = api.addRequestValidator('BasicValidator',{
+      validateRequestBody: true
+    })
+
+
+    api.root.addResource("matches").addMethod(
       "POST",
       new LambdaIntegration(matchFunction, {
-        requestValidator: new apigateway.RequestValidator(this,"body-validator",{restApi: api,requestValidatorName: "body-validator",validateRequestBody: true,}),
-        requestModels: {"application/json": matchModel},
+        
+        
       })
+      ,
+      {
+        requestModels: {'application/json': matchModel},
+        requestValidator: basicValidator,
+      }
     );
+
   }
 }
