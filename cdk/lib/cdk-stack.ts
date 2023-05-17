@@ -3,19 +3,18 @@ import {
   JsonSchemaType,
   LambdaIntegration,
   Model,
-  RequestValidator,
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 
 import {
-  AssetCode,
-  Code,
-  Function,
-  LayerVersion,
   Runtime,
 } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
+
+import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
+import { RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
+
 
 export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -23,7 +22,7 @@ export class CdkStack extends cdk.Stack {
 
     const matchFunction = new NodejsFunction(this, "Match", {
       entry: "lambda/match-fn.ts",
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_18_X
     });
 
     const api = new RestApi(this, "reabold-api", {
@@ -64,23 +63,25 @@ export class CdkStack extends cdk.Stack {
     });
 
 
-    const basicValidator = api.addRequestValidator('BasicValidator',{
+    const basicValidator = api.addRequestValidator('BasicValidator', {
       validateRequestBody: true
     })
 
-
     api.root.addResource("matches").addMethod(
       "POST",
-      new LambdaIntegration(matchFunction, {
-        
-        
-      })
-      ,
+      new LambdaIntegration(matchFunction, {}),
       {
-        requestModels: {'application/json': matchModel},
+        requestModels: { 'application/json': matchModel },
         requestValidator: basicValidator,
       }
     );
 
+    const matchTable = new dynamodb.Table(this, 'MatchTable', {
+      tableName: 'match',
+      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+      removalPolicy: RemovalPolicy.DESTROY,
+    });
+
+    matchTable.grantReadWriteData(matchFunction)
   }
 }
