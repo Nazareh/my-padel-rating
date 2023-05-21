@@ -28,8 +28,9 @@ export class CdkStack extends cdk.Stack {
       modelName: "matchmodelcdk",
       schema: {
         type: apigateway.JsonSchemaType.OBJECT,
-        required: ["datetime", "court", "wins", "losses","team1","team2"],
+        required: ["datetime", "court", "wins", "losses", "team1", "team2"],
         properties: {
+          court: { type: apigateway.JsonSchemaType.INTEGER },
           datetime: { type: apigateway.JsonSchemaType.STRING },
           wins: { type: apigateway.JsonSchemaType.INTEGER },
           losses: { type: apigateway.JsonSchemaType.INTEGER },
@@ -76,35 +77,50 @@ export class CdkStack extends cdk.Stack {
     matchTable.grantReadWriteData(matchFunction)
 
     const senderEmail = 'nazarehturmina@gmail.com';
+    const receiverEmail = 'nazarehturmina@yahoo.com.br';
 
     const senderIdentity = new ses.CfnEmailIdentity(this, 'NazGmailIdentity', {
       emailIdentity: senderEmail
     });
 
     const receiverIdentity = new ses.CfnEmailIdentity(this, 'NazYahooIdentity', {
-      emailIdentity: 'nazarehturmina@yahoo.com.br'
+      emailIdentity: receiverEmail
     });
 
-    const sesPolicy = 
-        new iam.PolicyStatement({
-          effect: iam.Effect.ALLOW,
-          actions: [
-            'ses:SendEmail',
-            'ses:SendRawEmail',
-            'ses:SendTemplatedEmail',
-          ],
-          resources: [
-            `arn:aws:ses:${process.env.CDK_DEPLOY_REGION}:${
-              cdk.Stack.of(this).account
-            }:identity/${senderEmail}`,
-          ],
-          conditions: {
-            'StringEquals': {
-              'ses:FromAddress': senderEmail,
-            },
+    const newMatchCfnTemplate = new ses.CfnTemplate(this, 'NewMatchCfnTemplate', /* all optional props */ {
+      template: {
+        subjectPart: 'New Match Recorded',
+        htmlPart: '<h3>A new match has been recorded!</h3> <p>Date: {{datetime}}</p> <p>Court: {{court}}</p> <p>Result: {{wins}} X {{losses}}</p>',
+        // htmlPart: '<h3>A new match has been recorded!</h3> <p>Date: {{datetime}}</p> <p>Court: {{court}}</p> <p>Team: {{team1.player1}},{{team1.player2}} X {{team2.player1}},{{team2.player2}}</p> <p>Result: {{wins}} X {{losses}}</p>',
+        templateName: 'NewMatchEmailTemplate',
+      },
+    });
+
+    const sesPolicy =
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          'ses:SendEmail',
+          'ses:SendRawEmail',
+          'ses:SendTemplatedEmail',
+        ],
+        resources: [
+          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
+          }:identity/${senderEmail}`,
+          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
+          }:identity/${receiverEmail}`,
+          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
+          }:template/NewMatchEmailTemplate`,
+
+        ],
+        conditions: {
+          'StringEquals': {
+            'ses:FromAddress': senderEmail,
           },
-        })
+        },
+      })
 
     matchFunction.addToRolePolicy(sesPolicy)
+
   }
 }

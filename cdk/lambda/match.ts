@@ -4,5 +4,12 @@ interface Match {
     datetime: Date
     wins: number
     losses: number
+    team1: {
+        player1: string,
+        player2: string
+    },team2: {
+        player1: string,
+        player2: string
+    }
     
 }
