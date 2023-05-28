@@ -327,6 +327,9 @@ export default {
       try {
         await fetch(`${import.meta.env.VITE_BACKEND_API}/matches`, {
           method: "POST",
+          headers: {
+            "Access-Control-Allow-Origin": "*"
+          },
           body: stateToPayload(this.formData),
         }).then(() => {
           this.formData.court = null;
