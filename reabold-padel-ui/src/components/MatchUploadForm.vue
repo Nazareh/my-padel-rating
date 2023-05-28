@@ -233,7 +233,11 @@ function roundToNearest(date = new Date()) {
 }
 
 const combineDateAndTime = function (date, time) {
-  return new Date(date + "T" + time + ":00.00Z");
+  let d = new Date(date);
+  d.setHours(time.slice(0, 2));
+  d.setMinutes(time.slice(3, 5));
+  d.setSeconds(0);
+  return d;
 };
 
 const stateToPayload = function ({
@@ -245,6 +249,7 @@ const stateToPayload = function ({
   date,
   time,
 }) {
+  console.log(date, time);
   const payload = {
     court,
     ...{ dateTime: combineDateAndTime(date, time) },
@@ -320,13 +325,10 @@ export default {
         return;
       }
       try {
-        await fetch(
-          "https://qw96u9l8m8.execute-api.ap-southeast-4.amazonaws.com/default",
-          {
-            method: "POST",
-            body: stateToPayload(this.formData),
-          }
-        ).then(() => {
+        await fetch(`${import.meta.env.VITE_BACKEND_API}/matches`, {
+          method: "POST",
+          body: stateToPayload(this.formData),
+        }).then(() => {
           this.formData.court = null;
           this.formData.date = new Date().toISOString().slice(0, 10);
           this.formData.time = roundToNearest().toTimeString().slice(0, 5);
