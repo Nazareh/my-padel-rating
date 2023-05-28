@@ -327,6 +327,9 @@ export default {
         await fetch(`${import.meta.env.VITE_BACKEND_API}/matches`, {
           method: "POST",
           body: stateToPayload(this.formData),
+          headers: {
+            "Content-Type":"application/json"
+          }
         }).then(() => {
           this.formData.court = null;
           this.formData.date = new Date().toISOString().slice(0, 10);
