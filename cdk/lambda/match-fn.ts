@@ -47,10 +47,12 @@ export const handler = async (event: APIGatewayEvent, context: Context): Promise
 
         const command = new ses.SendEmailCommand(input);
         const response = await new SESClient({region: 'ap-southeast-2'}).send(command);
-        console.log(response)
-
         return {
-            statusCode: 201, body: JSON.stringify({
+            statusCode: 201, 
+            headers: {
+                'Access-Control-Allow-Origin':'*'
+            },
+            body: JSON.stringify({
                 match,
                 response
             })

@@ -62,7 +62,7 @@ export class CdkStack extends cdk.Stack {
       validateRequestBody: true,
     });
 
-    api.root
+   const apiResource =  api.root
       .addResource("matches")
       .addMethod("POST", new apigateway.LambdaIntegration(matchFunction, {}), {
         requestModels: { "application/json": matchModel },
