@@ -19,6 +19,10 @@ export class CdkStack extends cdk.Stack {
     const api = new apigateway.RestApi(this, "reabold-api", {
       restApiName: "Reabold Api",
       description: "This API receives Padel match results",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS // this is also the default
+      }
     });
 
     const matchModel = new apigateway.Model(this, "model-validator", {
