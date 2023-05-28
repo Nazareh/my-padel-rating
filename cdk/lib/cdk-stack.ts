@@ -3,9 +3,9 @@ import * as cdk from "aws-cdk-lib";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as dynamodb from 'aws-cdk-lib/aws-dynamodb';
-import * as ses from 'aws-cdk-lib/aws-ses';
-import * as iam from 'aws-cdk-lib/aws-iam';
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as ses from "aws-cdk-lib/aws-ses";
+import * as iam from "aws-cdk-lib/aws-iam";
 
 export class CdkStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -13,7 +13,7 @@ export class CdkStack extends cdk.Stack {
 
     const matchFunction = new NodejsFunction(this, "Match", {
       entry: "lambda/match-fn.ts",
-      runtime: lambda.Runtime.NODEJS_18_X
+      runtime: lambda.Runtime.NODEJS_18_X,
     });
 
     const api = new apigateway.RestApi(this, "reabold-api", {
@@ -54,62 +54,54 @@ export class CdkStack extends cdk.Stack {
       },
     });
 
+    const basicValidator = api.addRequestValidator("BasicValidator", {
+      validateRequestBody: true,
+    });
 
-    const basicValidator = api.addRequestValidator('BasicValidator', {
-      validateRequestBody: true
-    })
-
-    api.root.addResource("matches").addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(matchFunction, {}),
-      {
-        requestModels: { 'application/json': matchModel },
+    api.root
+      .addResource("matches")
+      .addMethod("POST", new apigateway.LambdaIntegration(matchFunction, {}), {
+        requestModels: { "application/json": matchModel },
         requestValidator: basicValidator,
-      }
-    );
+      });
 
-    const matchTable = new dynamodb.Table(this, 'MatchTable', {
-      tableName: 'match',
-      partitionKey: { name: 'id', type: dynamodb.AttributeType.STRING },
+    const matchTable = new dynamodb.Table(this, "MatchTable", {
+      tableName: "match",
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    matchTable.grantReadWriteData(matchFunction)
+    matchTable.grantReadWriteData(matchFunction);
 
-    const senderEmail = 'nazarehturmina@gmail.com';
-    const receiverEmail = 'nazarehturmina@yahoo.com.br';
+    const senderEmail = "nazarehturmina@gmail.com";
+    const receiverEmail = "nazarehturmina@yahoo.com.br";
 
-    const senderIdentity = new ses.CfnEmailIdentity(this, 'NazGmailIdentity', {
-      emailIdentity: senderEmail
+    new ses.CfnEmailIdentity(this, "NazGmailIdentity", {
+      emailIdentity: senderEmail,
     });
 
-    const receiverIdentity = new ses.CfnEmailIdentity(this, 'NazYahooIdentity', {
-      emailIdentity: receiverEmail
+    new ses.CfnEmailIdentity(this, "NazYahooIdentity", {
+      emailIdentity: receiverEmail,
     });
 
-    const sesPolicy =
-      new iam.PolicyStatement({
-        effect: iam.Effect.ALLOW,
-        actions: [
-          'ses:SendEmail',
-          'ses:SendRawEmail',
-          'ses:SendTemplatedEmail',
-        ],
-        resources: [
-          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
-          }:identity/${senderEmail}`,
-          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
-          }:identity/${receiverEmail}`,
-
-        ],
-        conditions: {
-          'StringEquals': {
-            'ses:FromAddress': senderEmail,
-          },
+    const sesPolicy = new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: ["ses:SendEmail", "ses:SendRawEmail"],
+      resources: [
+        `arn:aws:ses:${cdk.Stack.of(this).region}:${
+          cdk.Stack.of(this).account
+        }:identity/${senderEmail}`,
+        `arn:aws:ses:${cdk.Stack.of(this).region}:${
+          cdk.Stack.of(this).account
+        }:identity/${receiverEmail}`,
+      ],
+      conditions: {
+        StringEquals: {
+          "ses:FromAddress": senderEmail,
         },
-      })
+      },
+    });
 
-    matchFunction.addToRolePolicy(sesPolicy)
-
+    matchFunction.addToRolePolicy(sesPolicy);
   }
 }
