@@ -268,12 +268,9 @@ const stateToPayload = function ({
         id: team2.player2,
       },
     },
-    matchResult: {
       wins: scoreTeam1,
-      losses: scoreTeam2,
-    },
-    rated: true,
-  };
+      losses: scoreTeam2  
+    };
 
   return JSON.stringify(payload);
 };
