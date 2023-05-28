@@ -1,5 +1,0 @@
-image: gitpod/workspace-full
-tasks:
-  - name: Install AWS CDK
-    init: npm install -g aws-cdk
-    command: cdk --version
