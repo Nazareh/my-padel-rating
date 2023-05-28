@@ -87,15 +87,6 @@ export class CdkStack extends cdk.Stack {
       emailIdentity: receiverEmail
     });
 
-    const newMatchCfnTemplate = new ses.CfnTemplate(this, 'NewMatchCfnTemplate', /* all optional props */ {
-      template: {
-        subjectPart: 'New Match Recorded',
-        htmlPart: '<h3>A new match has been recorded!</h3> <p>Date: {{datetime}}</p> <p>Court: {{court}}</p> <p>Result: {{wins}} X {{losses}}</p>',
-        // htmlPart: '<h3>A new match has been recorded!</h3> <p>Date: {{datetime}}</p> <p>Court: {{court}}</p> <p>Team: {{team1.player1}},{{team1.player2}} X {{team2.player1}},{{team2.player2}}</p> <p>Result: {{wins}} X {{losses}}</p>',
-        templateName: 'NewMatchEmailTemplate',
-      },
-    });
-
     const sesPolicy =
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
@@ -109,8 +100,6 @@ export class CdkStack extends cdk.Stack {
           }:identity/${senderEmail}`,
           `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
           }:identity/${receiverEmail}`,
-          `arn:aws:ses:${cdk.Stack.of(this).region}:${cdk.Stack.of(this).account
-          }:template/NewMatchEmailTemplate`,
 
         ],
         conditions: {

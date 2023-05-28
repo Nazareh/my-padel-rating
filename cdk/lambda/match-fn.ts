@@ -29,9 +29,10 @@ export const handler = async (event: APIGatewayEvent, context: Context): Promise
                   Html: {
                     Charset: "UTF-8",
                     Data: `
-                    Players: ${match.team1.player1}/${match.team1.player2} VS ${match.team2.player1}/${match.team2.player2}
-                    Court: ${match.court} \n
-                    Date: ${match.datetime}
+                    <h3> Players: ${match.team1.player1}/${match.team1.player2} VS ${match.team2.player1}/${match.team2.player2} </h3>
+                    <br>
+                    Date: ${match.datetime} <br>
+                    Court: ${match.court} <br>
                     Result: ${match.wins}:${match.losses}
                     `
                   },
