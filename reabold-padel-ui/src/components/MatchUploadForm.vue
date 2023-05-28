@@ -250,26 +250,18 @@ const stateToPayload = function ({
   time,
 }) {
   const payload = {
-    court,
-    ...{ dateTime: combineDateAndTime(date, time) },
+    court: parseInt(court),
+    ...{ datetime: combineDateAndTime(date, time) },
     team1: {
-      player1: {
-        id: team1.player1,
-      },
-      player2: {
-        id: team1.player2,
-      },
+      player1: team1.player1,
+      player2:  team1.player2,
     },
     team2: {
-      player1: {
-        id: team2.player1,
-      },
-      player2: {
-        id: team2.player2,
-      },
+      player1: team2.player1,
+      player2: team2.player2
     },
-      wins: scoreTeam1,
-      losses: scoreTeam2  
+      wins: parseInt(scoreTeam1),
+      losses: parseInt(scoreTeam2) 
     };
 
   return JSON.stringify(payload);
