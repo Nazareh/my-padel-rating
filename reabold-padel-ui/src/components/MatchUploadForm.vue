@@ -249,7 +249,6 @@ const stateToPayload = function ({
   date,
   time,
 }) {
-  console.log(date, time);
   const payload = {
     court,
     ...{ dateTime: combineDateAndTime(date, time) },
