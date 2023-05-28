@@ -205,7 +205,7 @@
         </div>
 
         <button
-          class="mt-5 w-full scale-105 rounded-[4px] border bg-blue-800 bg-gradient-to-r from-blue-500 p-2 text-white duration-300 hover:bg-slate-400"
+          class="my-5  w-full scale-105 rounded-[4px] border bg-blue-800 bg-gradient-to-r from-blue-500 p-2 text-white duration-300 hover:bg-slate-400"
           type="submit"
         >
           Submit Results
