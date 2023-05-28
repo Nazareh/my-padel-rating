@@ -328,8 +328,9 @@ export default {
           method: "POST",
           body: stateToPayload(this.formData),
           headers: {
-            "Content-Type":"application/json"
-          }
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
         }).then(() => {
           this.formData.court = null;
           this.formData.date = new Date().toISOString().slice(0, 10);
