@@ -313,12 +313,14 @@ export default {
         return;
       }
       try {
-        await fetch(`${import.meta.env.VITE_BACKEND_API}/matches`, {
+        await fetch(`${process.env.VUE_APP_BACKEND_API}/matches`, {
           method: "POST",
           body: stateToPayload(this.formData),
           headers: {
             'Accept': 'application/json',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-api-key': process.env.VUE_APP_REABOLD_PADEL_API_GATEWAY_KEY
+
         },
         }).then(() => {
           this.formData.court = null;

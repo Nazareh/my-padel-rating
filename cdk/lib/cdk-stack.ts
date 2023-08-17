@@ -25,6 +25,8 @@ export class CdkStack extends cdk.Stack {
       }
     });
 
+  
+
     const matchModel = new apigateway.Model(this, "model-validator", {
       restApi: api,
       contentType: "application/json",
@@ -62,11 +64,41 @@ export class CdkStack extends cdk.Stack {
       validateRequestBody: true,
     });
 
-   const apiResource =  api.root
+   const apiMethod =  api.root
       .addResource("matches")
       .addMethod("POST", new apigateway.LambdaIntegration(matchFunction, {}), {
         requestModels: { "application/json": matchModel },
         requestValidator: basicValidator,
+        apiKeyRequired: true
+      });
+
+      const usagePlan = api.addUsagePlan('UsagePlan', {
+        name: 'Usage Plan',
+        throttle: {
+          rateLimit: 10,
+          burstLimit: 2
+        }
+      });
+
+      const key = api.addApiKey('ApiKey', {
+        apiKeyName: 'myApiKey1',
+        value: process.env.REABOLD_PADEL_API_GATEWAY_KEY
+      });
+
+      
+      usagePlan.addApiKey(key);
+
+      usagePlan.addApiStage({
+        stage: api.deploymentStage,
+        throttle: [
+          {
+            method: apiMethod,
+            throttle: {
+              rateLimit: 10,
+              burstLimit: 2
+            }
+          }
+        ]
       });
 
     const matchTable = new dynamodb.Table(this, "MatchTable", {
