@@ -320,7 +320,7 @@ export default {
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-api-key': import.meta.env.VUE_APP_REABOLD_PADEL_API_GATEWAY_KEY
+            'X-api-key': import.meta.env.VITE_BACKEND_API_KEY
         },
         }).then(() => {
           this.formData.court = null;
