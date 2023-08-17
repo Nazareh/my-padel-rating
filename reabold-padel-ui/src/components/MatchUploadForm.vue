@@ -340,6 +340,10 @@ export default {
         });
       } catch (error) {
         console.log(error);
+        notify({
+            type: "error",
+            title: "Oops, something went wrong",
+          });
       }
     },
   },
