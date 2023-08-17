@@ -76,7 +76,7 @@ export class CdkStack extends cdk.Stack {
         name: 'Usage Plan',
         throttle: {
           rateLimit: 1,
-          burstLimit: 4
+          burstLimit: 1
         }
       });
 
@@ -95,7 +95,7 @@ export class CdkStack extends cdk.Stack {
             method: apiMethod,
             throttle: {
               rateLimit: 1,
-              burstLimit: 4
+              burstLimit: 1
             }
           }
         ]
