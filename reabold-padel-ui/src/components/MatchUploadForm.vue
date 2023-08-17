@@ -221,6 +221,7 @@ import { useVuelidate } from "@vuelidate/core";
 import { integer, required } from "@vuelidate/validators";
 import VueTimepicker from "vue3-timepicker/src/VueTimepicker.vue";
 import { useNotification } from "@kyvg/vue3-notification";
+import type { Context } from "https://edge.netlify.com";
 
 const { notify } = useNotification();
 
@@ -313,14 +314,14 @@ export default {
         return;
       }
       try {
-        await fetch(`${process.env.VUE_APP_BACKEND_API}/matches`, {
+
+        await fetch(`${Netlify.env.get("VUE_APP_BACKEND_API")}/matches`, {
           method: "POST",
           body: stateToPayload(this.formData),
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
-            'X-api-key': process.env.VUE_APP_REABOLD_PADEL_API_GATEWAY_KEY
-
+            'X-api-key': Netlify.env.get("VUE_APP_REABOLD_PADEL_API_GATEWAY_KEY")
         },
         }).then(() => {
           this.formData.court = null;
