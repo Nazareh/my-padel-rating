@@ -342,7 +342,7 @@ export default {
         console.log(error);
         notify({
             type: "error",
-            title: "Oops, something went wrong",
+            title: "Oops, something went wrong!",
           });
       }
     },
