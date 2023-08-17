@@ -31,7 +31,15 @@ export const handler = async (event: APIGatewayEvent, context: Context): Promise
                     Data: `
                     <h3> Players: ${match.team1.player1}/${match.team1.player2} VS ${match.team2.player1}/${match.team2.player2} </h3>
                     <br>
-                    Date: ${match.datetime} <br>
+                    When: ${new Date(match.datetime).toLocaleString('en-AU', {
+                        timeZone: 'Australia/Perth',
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      })} <br>
                     Court: ${match.court} <br>
                     Result: ${match.wins}:${match.losses}
                     `
