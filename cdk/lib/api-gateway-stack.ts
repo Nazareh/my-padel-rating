@@ -3,14 +3,18 @@ import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import path = require("path");
+import { AssetCode, Function, HttpMethod, Runtime } from "aws-cdk-lib/aws-lambda";
+import { postMatchModel } from "./api-model";
+import { STATUS_CODES } from "http";
 
 export class ApiGatewayStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        const postMatchFunction = new NodejsFunction(this, "PostMatch", {
-            functionName: "post-match-fn",
-            entry: "lambda/post-match-fn.ts",
+        const matchFunction = new NodejsFunction(this, "match-fn", {
+            functionName: "match-fn",
+            entry: "lambda/match-fn.ts",
             runtime: lambda.Runtime.NODEJS_18_X,
         });
 
@@ -48,39 +52,17 @@ export class ApiGatewayStack extends cdk.Stack {
             validateRequestBody: true,
         });
 
-        const postMatchModel = new apigateway.Model(this, "model-validator", {
-            restApi: api,
-            contentType: "application/json",
-            description: "Validate PostMatch request body",
-            modelName: "postMatch",
-            schema: {
-                type: apigateway.JsonSchemaType.OBJECT,
-                required: ["startTime", "team1Player1", "team1Player2", "team2Player1", "team2Player2", "set1Team1Score", "set1Team2Score", "set2Team1Score", "set2Team2Score", "set3Team1Score", "set3Team2Score"],
-                properties: {
-                    startTime: { type: apigateway.JsonSchemaType.STRING },
-                    team1Player1: { type: apigateway.JsonSchemaType.STRING },
-                    team1Player2: { type: apigateway.JsonSchemaType.STRING },
-                    team2Player1: { type: apigateway.JsonSchemaType.STRING },
-                    team2Player2: { type: apigateway.JsonSchemaType.STRING },
-                    set1Team1Score: { type: apigateway.JsonSchemaType.INTEGER },
-                    set1Team2Score: { type: apigateway.JsonSchemaType.INTEGER },
-                    set2Team1Score: { type: apigateway.JsonSchemaType.INTEGER },
-                    set2Team2Score: { type: apigateway.JsonSchemaType.INTEGER },
-                    set3Team1Score: { type: apigateway.JsonSchemaType.INTEGER },
-                    set3Team2Score: { type: apigateway.JsonSchemaType.INTEGER },
-
-                },
-            },
-        });
-
         const apiRoot = api.root.addResource("v1")
+        const matchResource = apiRoot.addResource("match")
 
-        const matchPath = apiRoot.addResource("match").addMethod("POST", new apigateway.LambdaIntegration(postMatchFunction, {}),
+        matchResource.addMethod(HttpMethod.POST, new apigateway.LambdaIntegration(matchFunction, {}),
             {
-                //   requestModels: { "application/json": postMatchModel },
-                //   requestValidator: basicValidator,
-                apiKeyRequired: false
+                requestModels: { "application/json": postMatchModel(this, api) },
+                requestValidator: basicValidator,
+                apiKeyRequired: false,
             });
+
+        matchResource.addMethod(HttpMethod.GET, new apigateway.LambdaIntegration(matchFunction, {}), { apiKeyRequired: false });
 
     }
 }

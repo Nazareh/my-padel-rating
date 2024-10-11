@@ -1,71 +1,41 @@
 import { Context, APIGatewayProxyResult, APIGatewayEvent } from 'aws-lambda';
-import * as AWS from 'aws-sdk';
-import { v4 as uuidv4 } from 'uuid';
-import * as ses from "@aws-sdk/client-ses";
-import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
-
-const db = new AWS.DynamoDB.DocumentClient();
+import {processMatch} from './match-service'
+import { HttpMethod } from 'aws-cdk-lib/aws-lambda';
+import { sampleMatches } from './sample-matches';
+import { MatchDto, PostMatchDto } from './model';
 
 export const handler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
 
-    const match: Match = JSON.parse(event.body || '');
-    match.id = uuidv4()
+    try{
+        let bodyResponse:any = null; 
+        const { httpMethod, body } = event;
 
-    try {
-        await db.put({
-            TableName: 'match',
-            Item: match
-        }).promise();
+        if (httpMethod == HttpMethod.POST) {
+            const parsedBody = JSON.parse(body || '{}');
+            const postMatchDto: PostMatchDto = {
+                ...parsedBody, 
+                startTime: new Date(parsedBody.startTime) 
+            };
+            bodyResponse = processMatch(postMatchDto)
+        }
 
-        const input = { 
-            Source: "nazarehturmina@gmail.com",
-            Destination: { 
-                ToAddresses: [
-                     "nazarehturmina@yahoo.com.br",
-                ],
-            },
-            Message: {
-                Body: {
-                  Html: {
-                    Charset: "UTF-8",
-                    Data: `
-                    <h3> Players: ${match.team1.player1}/${match.team1.player2} VS ${match.team2.player1}/${match.team2.player2} </h3>
-                    <br>
-                    When: ${new Date(match.datetime).toLocaleString('en-AU', {
-                        timeZone: 'Australia/Perth',
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        hour12: true
-                      })} <br>
-                    Court: ${match.court} <br>
-                    Result: ${match.wins}:${match.losses}
-                    `
-                  },
-                },
-                Subject: {
-                  Charset: "UTF-8",
-                  Data: `New match: ${match.team1.player1}/${match.team1.player2} VS ${match.team2.player1}/${match.team2.player2}`,
-                },
-              },
-        };
-        
+        if (httpMethod == HttpMethod.GET) {
+            const sampleMatch:MatchDto = sampleMatches[Math.floor(Math.random() * (sampleMatches.length-1))]
+            bodyResponse = sampleMatch
+        }
 
-        const command = new ses.SendEmailCommand(input);
-        const response = await new SESClient({region: 'ap-southeast-2'}).send(command);
+
         return {
-            statusCode: 201, 
-            headers: {
-                'Access-Control-Allow-Origin':'*'
-            },
-            body: JSON.stringify({
-                match,
-                response
-            })
+            statusCode: 200, 
+            
+            body: JSON.stringify(bodyResponse)
         };
+
     } catch (error) {
-        return { statusCode: 500, body: JSON.stringify({ error }) };
+       console.error("Error processing the request:", error);
+       return{
+            statusCode: 400,
+            body: JSON.stringify({ message: "Invalid request data" })
+        };
     }
 };

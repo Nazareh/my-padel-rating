@@ -1,0 +1,11 @@
+{
+  "name": "post-match",
+  "description": "Lambdas to do CRUD operations on Matches",
+  "version": "1.0.0",
+  "main": "src/post-match-fn.ts",
+  "author": "Nazareh Velho Turmina",
+  "type": "module",
+  "dependencies": {
+    "uuid":"*"
+  }
+}
