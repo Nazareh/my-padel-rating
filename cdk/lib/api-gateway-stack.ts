@@ -9,6 +9,7 @@ export class ApiGatewayStack extends cdk.Stack {
         super(scope, id, props);
 
         const postMatchFunction = new NodejsFunction(this, "PostMatch", {
+            functionName: "post-match-fn",
             entry: "lambda/post-match-fn.ts",
             runtime: lambda.Runtime.NODEJS_18_X,
         });
@@ -21,6 +22,28 @@ export class ApiGatewayStack extends cdk.Stack {
                 allowMethods: apigateway.Cors.ALL_METHODS
             },
         });
+
+        const key = api.addApiKey("ApiKey", {
+            apiKeyName: "ApiKey",
+        });
+
+        const usagePlan = api.addUsagePlan("UsagePlan", {
+            name: "Usage Plan",
+            throttle: {
+                rateLimit: 100,
+                burstLimit: 200,
+            },
+            quota: {
+                limit: 1000,
+                period: apigateway.Period.DAY,
+            },
+        });
+
+        usagePlan.addApiKey(key);
+        usagePlan.addApiStage({
+            stage: api.deploymentStage,
+        });
+
         const basicValidator = api.addRequestValidator("BasicValidator", {
             validateRequestBody: true,
         });
