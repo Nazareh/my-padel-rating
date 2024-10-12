@@ -1,7 +1,6 @@
 import { Context, APIGatewayProxyResult, APIGatewayEvent } from 'aws-lambda';
-import {processMatch} from './match-service'
+import {processMatch, getAllMatches} from './match-service'
 import { HttpMethod } from 'aws-cdk-lib/aws-lambda';
-import { sampleMatches } from './sample-matches';
 import { MatchDto, PostMatchDto } from './model';
 
 export const handler = async (event: APIGatewayEvent, context: Context): Promise<APIGatewayProxyResult> => {
@@ -20,8 +19,8 @@ export const handler = async (event: APIGatewayEvent, context: Context): Promise
         }
 
         if (httpMethod == HttpMethod.GET) {
-            const sampleMatch:MatchDto = sampleMatches[Math.floor(Math.random() * (sampleMatches.length-1))]
-            bodyResponse = sampleMatch
+        
+            bodyResponse = getAllMatches()
         }
 
 

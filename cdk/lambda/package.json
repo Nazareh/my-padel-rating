@@ -6,6 +6,8 @@
   "author": "Nazareh Velho Turmina",
   "type": "module",
   "dependencies": {
-    "uuid":"*"
+    "@aws-sdk/client-dynamodb": "^3.669.0",
+    "@aws-sdk/lib-dynamodb": "^3.669.0",
+    "uuid": "*"
   }
 }

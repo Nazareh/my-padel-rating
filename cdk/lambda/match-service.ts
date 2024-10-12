@@ -1,31 +1,40 @@
-import { randomUUID } from "crypto";
-import { MATCH_STATUS, MatchDto, PostMatchDto, TEAM } from "./model";
+import { randomUUID } from "crypto"
+import { MatchStatus, MatchDto, PostMatchDto, Team } from "./model"
+import {putItemToDynamo, getItemsFromDynamo} from "../dynamo/utils"
+import {DynamoTables} from "../dynamo/tables"
 
+
+export function getAllMatches(): MatchDto[]{
+
+    getItemsFromDynamo
+}
 export function processMatch(postMatchDto: PostMatchDto): MatchDto {
     const { team1Player1, team1Player2, team2Player1, team2Player2, ...otherPostMatchDtoProps } = postMatchDto
 
     let match: MatchDto = {
         id: randomUUID(),
         players: [
-            { id: team1Player1, team: TEAM.TEAM_1 },
-            { id: team1Player2, team: TEAM.TEAM_1 },
-            { id: team2Player1, team: TEAM.TEAM_2 },
-            { id: team2Player2, team: TEAM.TEAM_2 },
+            { id: team1Player1, team: Team.TEAM_1 },
+            { id: team1Player2, team: Team.TEAM_1 },
+            { id: team2Player1, team: Team.TEAM_2 },
+            { id: team2Player2, team: Team.TEAM_2 },
         ],
-        status: MATCH_STATUS.APPROVED,
+        status: MatchStatus.APPROVED,
         reason :"Match approved automatically",
         ...otherPostMatchDtoProps
     }
 
     if (validateDistinctPlayers(match) == false) {
-        match.status = MATCH_STATUS.INVALID
+        match.status = MatchStatus.INVALID
         match.reason = "Four distinct players are needed"
     }
 
     if (validateMatchScores(match) == undefined) {
-        match.status = MATCH_STATUS.INVALID
+        match.status = MatchStatus.INVALID
         match.reason = "Cannot determine a match winner. Draws are not allowed"
     }
+
+    putItemToDynamo(DynamoTables[process.env.MATCH_TABLE as keyof typeof DynamoTables], match)
 
     return match
 }
@@ -38,7 +47,7 @@ function validateDistinctPlayers(match: MatchDto): boolean {
         .reduce((set, id) => set.add(id), new Set<string>()).size === 4
 }
 
-function validateMatchScores(match: MatchDto): TEAM | undefined {
+function validateMatchScores(match: MatchDto): Team | undefined {
     const scores = [
         { team1: match.set1Team1Score, team2: match.set1Team2Score },
         { team1: match.set2Team1Score, team2: match.set2Team2Score },
@@ -64,4 +73,4 @@ function isSetScoreValid({ team1, team2 }: { team1: number; team2: number }): bo
     );
 }
 
-const getSetWinner= (team1Score: number, team2Score: number) => team1Score > team2Score ? TEAM.TEAM_1 : TEAM.TEAM_2
+const getSetWinner= (team1Score: number, team2Score: number) => team1Score > team2Score ? Team.TEAM_1 : Team.TEAM_2

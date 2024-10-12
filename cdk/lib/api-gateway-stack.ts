@@ -1,23 +1,30 @@
 import * as cdk from "aws-cdk-lib";
-import { Construct } from "constructs";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
-import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import path = require("path");
-import { AssetCode, Function, HttpMethod, Runtime } from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import { HttpMethod } from "aws-cdk-lib/aws-lambda";
+
 import { postMatchModel } from "./api-model";
-import { STATUS_CODES } from "http";
+
+import { DynamoTables } from "../dynamo/tables";
+import { createLambda, createTable } from "./utils";
 
 export class ApiGatewayStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        const matchFunction = new NodejsFunction(this, "match-fn", {
-            functionName: "match-fn",
-            entry: "lambda/match-fn.ts",
-            runtime: lambda.Runtime.NODEJS_18_X,
-        });
+        const matchTable = createTable(this, DynamoTables.MATCH);
 
+        const matchFunction = createLambda(this, "match-fn", {
+            environment: {
+                MATCH_TABLE: matchTable.tableName
+              }
+        })
+
+        matchTable.grantReadWriteData(matchFunction);
+    
+        
         const api = new apigateway.RestApi(this, "my-padel-rating-api", {
             restApiName: "My Padel Rating Api",
             description: "This API receives Padel match results",
@@ -63,6 +70,6 @@ export class ApiGatewayStack extends cdk.Stack {
             });
 
         matchResource.addMethod(HttpMethod.GET, new apigateway.LambdaIntegration(matchFunction, {}), { apiKeyRequired: false });
-
+  
     }
 }

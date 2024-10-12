@@ -12,9 +12,9 @@ export type PostMatchDto = {
     set3Team2Score: number
 }
 
-export enum TEAM { TEAM_1 = "TEAM_1", TEAM_2 = "TEAM_2" }
+export enum Team { TEAM_1 = "TEAM_1", TEAM_2 = "TEAM_2" }
 
-export enum MATCH_STATUS {
+export enum MatchStatus {
     PENDING = "PENDING",
     APPROVED = "APPROVED",
     REJECTED = "REJECTED",
@@ -23,8 +23,7 @@ export enum MATCH_STATUS {
 
 export type MatchPlayerDto = {
     id: string
-    team: TEAM
-    // status?: MATCH_STATUS = MATCH_STATUS.PENDING
+    team: Team
     name?: string
 }
 
@@ -38,6 +37,6 @@ export type MatchDto = {
     set2Team2Score: number
     set3Team1Score: number
     set3Team2Score: number
-    status: MATCH_STATUS
+    status: MatchStatus
     reason?: string
 }
