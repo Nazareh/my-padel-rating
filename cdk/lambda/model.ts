@@ -29,7 +29,7 @@ export type MatchPlayerDto = {
 
 export type MatchDto = {
     id: String
-    startTime: Date
+    startTime: String
     players: MatchPlayerDto[]
     set1Team1Score: number
     set1Team2Score: number

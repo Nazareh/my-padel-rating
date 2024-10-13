@@ -1,15 +1,38 @@
 import { randomUUID } from "crypto"
 import { MatchStatus, MatchDto, PostMatchDto, Team } from "./model"
-import {putItemToDynamo, getItemsFromDynamo} from "../dynamo/utils"
-import {DynamoTables} from "../dynamo/tables"
+import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import {
+  DynamoDBDocumentClient,
+  ScanCommand,
+  PutCommand,
+  GetCommand,
+  DeleteCommand,
+} from "@aws-sdk/lib-dynamodb";
+import  { marshall } from "@aws-sdk/util-dynamodb";
+import { DynamoTables} from "../dynamo/tables"
 
+const client = new DynamoDBClient({});
+const dynamo = DynamoDBDocumentClient.from(client);
 
-export function getAllMatches(): MatchDto[]{
-
-    getItemsFromDynamo
+export async function findMatchById(matchId: String){
+    console.log(`Searching match by id ${matchId}`)
+    return (await dynamo.send(
+        new GetCommand({
+          TableName: DynamoTables.MATCH,
+          Key: {
+            id: matchId,
+          },
+        }))).Item
 }
-export function processMatch(postMatchDto: PostMatchDto): MatchDto {
-    const { team1Player1, team1Player2, team2Player1, team2Player2, ...otherPostMatchDtoProps } = postMatchDto
+
+export async function findAllMatches(){
+    return (await dynamo.send(
+        new ScanCommand({ TableName: DynamoTables.MATCH })
+      )).Items;
+}
+
+export async function processMatch(postMatchDto: PostMatchDto): Promise<MatchDto> {
+    const { startTime, team1Player1, team1Player2, team2Player1, team2Player2, ...otherPostMatchDtoProps } = postMatchDto
 
     let match: MatchDto = {
         id: randomUUID(),
@@ -19,9 +42,15 @@ export function processMatch(postMatchDto: PostMatchDto): MatchDto {
             { id: team2Player1, team: Team.TEAM_2 },
             { id: team2Player2, team: Team.TEAM_2 },
         ],
+        startTime: startTime.toISOString(),
         status: MatchStatus.APPROVED,
         reason :"Match approved automatically",
         ...otherPostMatchDtoProps
+    }
+
+    if (postMatchDto.startTime > new Date()) {
+        match.status = MatchStatus.INVALID
+        match.reason = "Future matches cannot have a result"
     }
 
     if (validateDistinctPlayers(match) == false) {
@@ -32,11 +61,30 @@ export function processMatch(postMatchDto: PostMatchDto): MatchDto {
     if (validateMatchScores(match) == undefined) {
         match.status = MatchStatus.INVALID
         match.reason = "Cannot determine a match winner. Draws are not allowed"
-    }
-
-    putItemToDynamo(DynamoTables[process.env.MATCH_TABLE as keyof typeof DynamoTables], match)
+    }  
+    
+   await dynamo.send(new PutCommand({
+        TableName: DynamoTables.MATCH,
+        Item: match,
+      }))
+      
 
     return match
+}
+
+export async function findMatchesByPlayerId(playerId: string): Promise<any> {
+    const params = {
+        TableName: DynamoTables.MATCH,
+        IndexName: "PlayerIdIndex",
+        KeyConditionExpression: "player_id = :playerId",
+        ExpressionAttributeValues: {
+          ":playerId": { S: playerId }
+        }
+      };
+      
+      const data = await client.send(new QueryCommand(params));
+
+      return data.Items;
 }
 
 
