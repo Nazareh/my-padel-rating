@@ -1,7 +1,7 @@
 import { Context, APIGatewayProxyResult, APIGatewayEvent } from "aws-lambda";
 import { processMatch, findMatchById, findAllMatches } from "./match-service";
 import { HttpMethod } from "aws-cdk-lib/aws-lambda";
-import { MatchDto, PostMatchDto } from "./model";
+import { PostMatchDto } from "./model";
 
 export const handler = async (
   event: APIGatewayEvent,

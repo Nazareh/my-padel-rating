@@ -9,6 +9,8 @@
     "@aws-sdk/client-dynamodb": "^3.669.0",
     "@aws-sdk/lib-dynamodb": "^3.669.0",
     "@aws-sdk/util-dynamodb": "^3.670.0",
+    "csv-parser": "^3.0.0",
+    "nanoid": "^5.0.7",
     "uuid": "*"
   }
 }

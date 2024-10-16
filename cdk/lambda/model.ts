@@ -21,16 +21,35 @@ export enum MatchStatus {
     INVALID = "INVALID"
 }
 
-export type MatchPlayerDto = {
-    id: string
+export type MatchPlayer = {
+    playerId: string
     team: Team
     name?: string
 }
 
-export type MatchDto = {
+export type Rating = {
+    type: string,
+    matchId: string, 
+    dateTime: Date,
+    value: number,
+    label: string
+}
+
+export type Player = {
+    id: string
+    name?: string
+    email: string
+    matchesWon: number
+    matchesLost: number
+    gamesWon: number
+    gamesLost: number
+    ratings: Map<String, Rating[]>
+}
+
+export type Match = {
     id: String
     startTime: String
-    players: MatchPlayerDto[]
+    players: MatchPlayer[]
     set1Team1Score: number
     set1Team2Score: number
     set2Team1Score: number

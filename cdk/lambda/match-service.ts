@@ -1,15 +1,15 @@
-import { randomUUID } from "crypto"
-import { MatchStatus, MatchDto, PostMatchDto, Team } from "./model"
-import { DynamoDBClient, QueryCommand } from "@aws-sdk/client-dynamodb";
+import { MatchStatus, Match, PostMatchDto, Team, Player } from "./model"
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   ScanCommand,
   PutCommand,
   GetCommand,
-  DeleteCommand,
 } from "@aws-sdk/lib-dynamodb";
-import  { marshall } from "@aws-sdk/util-dynamodb";
 import { DynamoTables} from "../dynamo/tables"
+import { findPlayerById } from "./player-service";
+import { nanoid } from "nanoid";
+
 
 const client = new DynamoDBClient({});
 const dynamo = DynamoDBDocumentClient.from(client);
@@ -31,17 +31,17 @@ export async function findAllMatches(){
       )).Items;
 }
 
-export async function processMatch(postMatchDto: PostMatchDto): Promise<MatchDto> {
+export async function processMatch(postMatchDto: PostMatchDto): Promise<Match> {
     const { startTime, team1Player1, team1Player2, team2Player1, team2Player2, ...otherPostMatchDtoProps } = postMatchDto
 
-    let match: MatchDto = {
-        id: randomUUID(),
+    let match: Match = {
+        id: nanoid(),
         players: [
-            { id: team1Player1, team: Team.TEAM_1 },
-            { id: team1Player2, team: Team.TEAM_1 },
-            { id: team2Player1, team: Team.TEAM_2 },
-            { id: team2Player2, team: Team.TEAM_2 },
-        ],
+          { playerId: team1Player1, team: Team.TEAM_1 },
+          { playerId: team1Player2, team: Team.TEAM_1 },
+          { playerId: team2Player1, team: Team.TEAM_2 },
+          { playerId: team2Player2, team: Team.TEAM_2 },
+      ],
         startTime: startTime.toISOString(),
         status: MatchStatus.APPROVED,
         reason :"Match approved automatically",
@@ -62,6 +62,10 @@ export async function processMatch(postMatchDto: PostMatchDto): Promise<MatchDto
         match.status = MatchStatus.INVALID
         match.reason = "Cannot determine a match winner. Draws are not allowed"
     }  
+    match.players.forEach(async player => {
+      const savedPlayer = (await findPlayerById(player.playerId))
+      player.name = savedPlayer ? savedPlayer.name : "josias"
+    })
     
    await dynamo.send(new PutCommand({
         TableName: DynamoTables.MATCH,
@@ -72,30 +76,15 @@ export async function processMatch(postMatchDto: PostMatchDto): Promise<MatchDto
     return match
 }
 
-export async function findMatchesByPlayerId(playerId: string): Promise<any> {
-    const params = {
-        TableName: DynamoTables.MATCH,
-        IndexName: "PlayerIdIndex",
-        KeyConditionExpression: "player_id = :playerId",
-        ExpressionAttributeValues: {
-          ":playerId": { S: playerId }
-        }
-      };
-      
-      const data = await client.send(new QueryCommand(params));
 
-      return data.Items;
-}
-
-
-function validateDistinctPlayers(match: MatchDto): boolean {
+function validateDistinctPlayers(match: Match): boolean {
     return match.players
-        .map(player => player.id)
+        .map(player => player.playerId)
         .filter(id => id.trim() !== '')
         .reduce((set, id) => set.add(id), new Set<string>()).size === 4
 }
 
-function validateMatchScores(match: MatchDto): Team | undefined {
+function validateMatchScores(match: Match): Team | undefined {
     const scores = [
         { team1: match.set1Team1Score, team2: match.set1Team2Score },
         { team1: match.set2Team1Score, team2: match.set2Team2Score },
